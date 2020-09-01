@@ -194,7 +194,6 @@ public class MusicSpectrum : MonoBehaviour {
                 objects[i].anchoredPosition = new Vector3(divPos+i*16.0f, 0.0f, 0.0f);
                 obj.transform.SetParent(barsContainer.transform);
             }
-            playSong("F:\\Music\\Monstercat all tracks\\SLANDER & Crankdat - Kneel Before Me (feat. Asking Alexandria).mp3");
         }
     }
 
