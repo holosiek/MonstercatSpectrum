@@ -30,6 +30,13 @@ public class MusicSpectrum : MonoBehaviour {
     // Max FPS allowed
     private const int FPS_MAX = 144;
     //------------------------------------------------------
+    // Get current working path of player
+    private String rootDir;
+    // List of tracks in current directory
+    private List<String> tracks = new List<String>();
+    // Index of current track played from 'tracks'
+    private int tracksInd = 0;
+    //------------------------------------------------------
     // Bars rectTransform used to change their size
     private RectTransform[] objects = new RectTransform[BARS_AMOUNT];
     // "Table-of-values" consisting of precalculated hights of bars
@@ -92,16 +99,66 @@ public class MusicSpectrum : MonoBehaviour {
     }
     
     //------------------------------------------------------
+    // Play next track
+    void nextSong(){
+        // Add 1 to track index
+        tracksInd++;
+        // Check if track index is in bounds, if not, reset it's value
+        if(tracksInd >= tracks.Count){
+            tracksInd = 0;
+        }
+        // If there is any track in list, play it
+        if(tracks.Count != 0){
+            playSong(tracks[tracksInd]);
+        }
+    }
+    
+    //------------------------------------------------------
+    // Play prev track
+    void prevSong(){
+        // Subtract track index by 1
+        tracksInd--;
+        // Check if track index is in bounds, if not, set it's value to tracks lenght-1
+        if(tracksInd < 0){
+            tracksInd = tracks.Count-1;
+        }
+        // If there is any track in list, play it
+        if(tracks.Count != 0){
+            playSong(tracks[tracksInd]);
+        }
+    }
+    
+    //------------------------------------------------------
+    // Update track list
+    void updateTrackList(String a_Track = ""){
+        // Get directory
+        DirectoryInfo dic = new DirectoryInfo(rootDir);
+        if(a_Track != ""){
+            Boolean trackFound = false;
+            // Clear variables
+            tracksInd = 0;
+            tracks.Clear();
+            // Go through all files in directory and check if they are mp3
+            foreach(FileInfo file in dic.GetFiles()){
+                if(Path.GetExtension(file.FullName) == ".mp3"){
+                    // Add .mp3 to list of tracks
+                    tracks.Add(file.FullName);
+                    // If track we are playing is found, keep it's index in track list
+                    if(a_Track == file.FullName){
+                        trackFound = true;
+                    }
+                    // If track we are playing is not found yet, add +1 to track list index
+                    if(!trackFound){
+                        tracksInd++;
+                    }
+                }
+            };
+        }
+    }
+    
+    //------------------------------------------------------
     // Play song
     void playSong(string a_Str){
-        /*
-        FOR FUTURE USE:
-        DirectoryInfo dic = new DirectoryInfo(Path.GetDirectoryName(a_Str));
-        artistText.text = "";
-        foreach(FileInfo file in dic.GetFiles()){
-            artistText.text += file + "\n";
-        };
-        */
         // Check if file is mp3
         if(Path.GetExtension(a_Str) == ".mp3"){
             // Decomposite filename to parts, which holds artist and title in format ARTIST - TITLE
@@ -109,7 +166,7 @@ public class MusicSpectrum : MonoBehaviour {
             if(decompressTitle.Length > 1){
                 // Trim additional spaces
                 artistText.text = decompressTitle[0].Trim(' ');
-                titleText.text = decompressTitle[1].Trim(' ');
+                titleText.text = decompressTitle[decompressTitle.Length-1].Trim(' ');
             } else {
                 // If ARTIST - TITLE format not found, use filename as name
                 artistText.text = Path.GetFileNameWithoutExtension(a_Str);
@@ -138,6 +195,12 @@ public class MusicSpectrum : MonoBehaviour {
             }
             // Set value of stream volume
             Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, DEF_CHANNEL_VOL);
+            
+            // If root path is different from prev, change it and update music list
+            if(rootDir != Path.GetDirectoryName(a_Str)){
+                rootDir = Path.GetDirectoryName(a_Str);
+                updateTrackList(a_Str);
+            }
         }
     }
 
@@ -171,6 +234,14 @@ public class MusicSpectrum : MonoBehaviour {
                 objects[i].sizeDelta = new Vector2(objects[i].rect.width, Mathf.Clamp(barHeight, 0.01f, 1.0f)*BARS_HEIGHT);
                 objects[i].anchoredPosition = new Vector3(objects[i].anchoredPosition.x, 0.5f+objects[i].rect.height/2, 0.0f);
             }
+        }
+        // Play next song on pressing right arrow
+        if(Input.GetKeyDown("right")){
+            nextSong();
+        }
+        // Play prev song on pressing left arrow
+        if(Input.GetKeyDown("left")){
+            prevSong();
         }
     }
     
