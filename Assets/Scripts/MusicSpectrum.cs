@@ -295,6 +295,11 @@ public class MusicSpectrum : MonoBehaviour {
                 obj.transform.SetParent(barsContainer.transform);
             }
         }
+        // If app is launched as default application, try to play choosen song
+        var args = System.Environment.GetCommandLineArgs();
+        if(args.Length > 1){
+            PlaySong(args[1]);
+        }
     }
 
     //------------------------------------------------------
