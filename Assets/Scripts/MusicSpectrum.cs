@@ -257,7 +257,12 @@ public class MusicSpectrum : MonoBehaviour {
                 objects[i].sizeDelta = new Vector2(objects[i].rect.width, Mathf.Clamp(barHeight, 0.01f, 1.0f)*BARS_HEIGHT);
                 objects[i].anchoredPosition = new Vector3(objects[i].anchoredPosition.x, 0.5f+objects[i].rect.height/2, 0.0f);
             }
+            // Update song length and duration on text display
             songTimeText.text = FormatSongLength(GetSongPosition())+"/"+FormatSongLength(currentSongLength);
+            // When music finish playing, go to next song
+            if(Bass.BASS_ChannelIsActive(stream) == BASSActive.BASS_ACTIVE_STOPPED){
+                NextSong();
+            }
         }
         // Play next song on pressing right arrow
         if(Input.GetKeyDown("right")){
