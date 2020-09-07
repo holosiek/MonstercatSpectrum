@@ -94,7 +94,7 @@ public class MusicSpectrum : MonoBehaviour {
     
     //------------------------------------------------------
     // Generate values to "array of values"
-    private void calculateValues(){
+    private void CalculateValues(){
         // Go through each value and calculate it
         for(int i=0; i<DEF_MAXVALUES+1; i++){
             barCalc[i] = Mathf.Sqrt((float)i/(float)DEF_MAXVALUES);
@@ -103,24 +103,24 @@ public class MusicSpectrum : MonoBehaviour {
     
     //------------------------------------------------------
     // Change song length into formatted text (mm:ss)
-    string formatSongLength(double a_Time){
+    private string FormatSongLength(double a_Time){
         return ((int)a_Time/60).ToString()+":"+((int)a_Time%60).ToString("00");
     }
     
     //------------------------------------------------------
     // Get song length
-    double getSongLength(){
+    private double GetSongLength(){
         return Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream, BASSMode.BASS_POS_BYTE));
     }
     //------------------------------------------------------
     // Get current song position
-    double getSongPosition(){
+    private double GetSongPosition(){
         return Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream, BASSMode.BASS_POS_BYTE));
     }
     
     //------------------------------------------------------
     // Play next track
-    void nextSong(){
+    void NextSong(){
         // Add 1 to track index
         tracksInd++;
         // Check if track index is in bounds, if not, reset it's value
@@ -129,13 +129,13 @@ public class MusicSpectrum : MonoBehaviour {
         }
         // If there is any track in list, play it
         if(tracks.Count != 0){
-            playSong(tracks[tracksInd]);
+            PlaySong(tracks[tracksInd]);
         }
     }
     
     //------------------------------------------------------
     // Play prev track
-    void prevSong(){
+    void PrevSong(){
         // Subtract track index by 1
         tracksInd--;
         // Check if track index is in bounds, if not, set it's value to tracks lenght-1
@@ -144,13 +144,13 @@ public class MusicSpectrum : MonoBehaviour {
         }
         // If there is any track in list, play it
         if(tracks.Count != 0){
-            playSong(tracks[tracksInd]);
+            PlaySong(tracks[tracksInd]);
         }
     }
     
     //------------------------------------------------------
     // Update track list
-    void updateTrackList(string a_Track = ""){
+    void UpdateTrackList(string a_Track = ""){
         // Get directory
         DirectoryInfo dic = new DirectoryInfo(rootDir);
         if(a_Track != ""){
@@ -178,7 +178,7 @@ public class MusicSpectrum : MonoBehaviour {
     
     //------------------------------------------------------
     // Play song
-    void playSong(string a_Str){
+    void PlaySong(string a_Str){
         // Check if file is mp3
         if(Path.GetExtension(a_Str) == ".mp3"){
             // Decomposite filename to parts, which holds artist and title in format ARTIST - TITLE
@@ -219,11 +219,11 @@ public class MusicSpectrum : MonoBehaviour {
             // If root path is different from prev, change it and update music list
             if(rootDir != Path.GetDirectoryName(a_Str)){
                 rootDir = Path.GetDirectoryName(a_Str);
-                updateTrackList(a_Str);
+                UpdateTrackList(a_Str);
             }
             
             // Cache song length
-            currentSongLength = getSongLength();
+            currentSongLength = GetSongLength();
         }
     }
 
@@ -257,15 +257,15 @@ public class MusicSpectrum : MonoBehaviour {
                 objects[i].sizeDelta = new Vector2(objects[i].rect.width, Mathf.Clamp(barHeight, 0.01f, 1.0f)*BARS_HEIGHT);
                 objects[i].anchoredPosition = new Vector3(objects[i].anchoredPosition.x, 0.5f+objects[i].rect.height/2, 0.0f);
             }
-            songTimeText.text = formatSongLength(getSongPosition())+"/"+formatSongLength(currentSongLength);
+            songTimeText.text = FormatSongLength(GetSongPosition())+"/"+FormatSongLength(currentSongLength);
         }
         // Play next song on pressing right arrow
         if(Input.GetKeyDown("right")){
-            nextSong();
+            NextSong();
         }
         // Play prev song on pressing left arrow
         if(Input.GetKeyDown("left")){
-            prevSong();
+            PrevSong();
         }
     }
     
@@ -274,7 +274,7 @@ public class MusicSpectrum : MonoBehaviour {
     // Awake once
     void Awake(){
         // Precalculate values for "Table-of-values"
-        calculateValues();
+        CalculateValues();
         // Set target FPS
         Application.targetFrameRate = FPS_MAX;
         // Register Bass with secret keys
@@ -312,9 +312,9 @@ public class MusicSpectrum : MonoBehaviour {
         string str = a_Files.Aggregate((a, b) => b);
         // Update track list
         rootDir = Path.GetDirectoryName(str);
-        updateTrackList(str);
+        UpdateTrackList(str);
         // Play song
-        playSong(str);
+        PlaySong(str);
     }
     //------------------------------------------------------
 }
