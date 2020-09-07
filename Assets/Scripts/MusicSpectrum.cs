@@ -31,11 +31,13 @@ public class MusicSpectrum : MonoBehaviour {
     private const int FPS_MAX = 144;
     //------------------------------------------------------
     // Get current working path of player
-    private String rootDir;
+    private string rootDir;
     // List of tracks in current directory
     private List<String> tracks = new List<String>();
     // Index of current track played from 'tracks'
     private int tracksInd = 0;
+    // Current song length for cache purpose
+    private double currentSongLength;
     //------------------------------------------------------
     // Bars rectTransform used to change their size
     private RectTransform[] objects = new RectTransform[BARS_AMOUNT];
@@ -54,11 +56,12 @@ public class MusicSpectrum : MonoBehaviour {
     // PUBLIC
     //------------------------------------------------------
     [Header("BASS secret keys")]
-    public String BassAPIMail;
-    public String BassAPIKey;
+    public string BassAPIMail;
+    public string BassAPIKey;
     [Header("Text display")]
     public UnityEngine.UI.Text artistText;
     public UnityEngine.UI.Text titleText;
+    public UnityEngine.UI.Text songTimeText;
     [Header("GUI elements")]
     public GameObject barsObject;
     public GameObject barsContainer;
@@ -99,6 +102,23 @@ public class MusicSpectrum : MonoBehaviour {
     }
     
     //------------------------------------------------------
+    // Change song length into formatted text (mm:ss)
+    string formatSongLength(double a_Time){
+        return ((int)a_Time/60).ToString()+":"+((int)a_Time%60).ToString("00");
+    }
+    
+    //------------------------------------------------------
+    // Get song length
+    double getSongLength(){
+        return Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream, BASSMode.BASS_POS_BYTE));
+    }
+    //------------------------------------------------------
+    // Get current song position
+    double getSongPosition(){
+        return Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream, BASSMode.BASS_POS_BYTE));
+    }
+    
+    //------------------------------------------------------
     // Play next track
     void nextSong(){
         // Add 1 to track index
@@ -130,7 +150,7 @@ public class MusicSpectrum : MonoBehaviour {
     
     //------------------------------------------------------
     // Update track list
-    void updateTrackList(String a_Track = ""){
+    void updateTrackList(string a_Track = ""){
         // Get directory
         DirectoryInfo dic = new DirectoryInfo(rootDir);
         if(a_Track != ""){
@@ -201,6 +221,9 @@ public class MusicSpectrum : MonoBehaviour {
                 rootDir = Path.GetDirectoryName(a_Str);
                 updateTrackList(a_Str);
             }
+            
+            // Cache song length
+            currentSongLength = getSongLength();
         }
     }
 
@@ -234,6 +257,7 @@ public class MusicSpectrum : MonoBehaviour {
                 objects[i].sizeDelta = new Vector2(objects[i].rect.width, Mathf.Clamp(barHeight, 0.01f, 1.0f)*BARS_HEIGHT);
                 objects[i].anchoredPosition = new Vector3(objects[i].anchoredPosition.x, 0.5f+objects[i].rect.height/2, 0.0f);
             }
+            songTimeText.text = formatSongLength(getSongPosition())+"/"+formatSongLength(currentSongLength);
         }
         // Play next song on pressing right arrow
         if(Input.GetKeyDown("right")){
@@ -284,8 +308,11 @@ public class MusicSpectrum : MonoBehaviour {
     void OnDisable(){
         UnityDragAndDropHook.UninstallHook();
     }
-    void OnFiles(List<string> aFiles, POINT aPos){
-        string str = aFiles.Aggregate((a, b) => b);
+    void OnFiles(List<string> a_Files, POINT a_Pos){
+        string str = a_Files.Aggregate((a, b) => b);
+        // Update track list
+        rootDir = Path.GetDirectoryName(str);
+        updateTrackList(str);
         // Play song
         playSong(str);
     }
