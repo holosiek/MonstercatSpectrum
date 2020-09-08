@@ -29,6 +29,12 @@ public class MusicSpectrum : MonoBehaviour {
     //------------------------------------------------------
     // Max FPS allowed
     private const int FPS_MAX = 144;
+    // Window size
+    private Vector2 screenResolution;
+    //------------------------------------------------------
+    // Get timescale background/bar transform
+    private RectTransform timescaleBackgroundTransform;
+    private RectTransform timescaleBarTransform;
     //------------------------------------------------------
     // Get current working path of player
     private string rootDir;
@@ -67,6 +73,8 @@ public class MusicSpectrum : MonoBehaviour {
     public GameObject barsContainer;
     public GameObject albumCover;
     public GameObject GUICanvas;
+    public GameObject timescaleBackground;
+    public GameObject timescaleBar;
     public Material skyBox;
     
     //------------------------------------------------------
@@ -230,8 +238,19 @@ public class MusicSpectrum : MonoBehaviour {
     //------------------------------------------------------
     // EVENTS
     //------------------------------------------------------
+    // On window resize
+    void WindowResize(){
+        // Change position of timescale background
+        timescaleBackgroundTransform.sizeDelta = new Vector2(screenResolution.x-10.0f, 5.0f);
+    }
+    
     // Update every frame
     void Update(){
+        // If window size changes
+        if(screenResolution.x != Screen.width || screenResolution.y != Screen.height){
+            screenResolution = new Vector2(Screen.width, Screen.height);
+            WindowResize();
+        }
         // If stream is playing
         if(stream != 0){
             // Get channel data from stream
@@ -263,6 +282,9 @@ public class MusicSpectrum : MonoBehaviour {
             if(Bass.BASS_ChannelIsActive(stream) == BASSActive.BASS_ACTIVE_STOPPED){
                 NextSong();
             }
+            // Update timescale bar according to song position
+            timescaleBarTransform.sizeDelta = new Vector2((float)(GetSongPosition()/GetSongLength())*(screenResolution.x-10.0f), 5.0f);
+            timescaleBarTransform.anchoredPosition = new Vector3((timescaleBarTransform.sizeDelta.x/2)-(screenResolution.x/2)+5.0f, 5.0f, 0.0f);
         }
         // Play next song on pressing right arrow
         if(Input.GetKeyDown("right")){
@@ -280,6 +302,9 @@ public class MusicSpectrum : MonoBehaviour {
     void Awake(){
         // Precalculate values for "Table-of-values"
         CalculateValues();
+        // Get timescale's object transforms
+        timescaleBackgroundTransform = timescaleBackground.GetComponent<RectTransform>();
+        timescaleBarTransform = timescaleBar.GetComponent<RectTransform>();
         // Set target FPS
         Application.targetFrameRate = FPS_MAX;
         // Register Bass with secret keys
