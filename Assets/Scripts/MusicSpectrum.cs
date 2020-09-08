@@ -285,6 +285,10 @@ public class MusicSpectrum : MonoBehaviour {
             // Update timescale bar according to song position
             timescaleBarTransform.sizeDelta = new Vector2((float)(GetSongPosition()/GetSongLength())*(screenResolution.x-10.0f), 5.0f);
             timescaleBarTransform.anchoredPosition = new Vector3((timescaleBarTransform.sizeDelta.x/2)-(screenResolution.x/2)+5.0f, 5.0f, 0.0f);
+            // If mouse is pressed down on the bottom of the screen, set song position
+            if(Input.GetMouseButton(0) && Input.mousePosition.y < 7.0f){
+                Bass.BASS_ChannelSetPosition(stream, (Input.mousePosition.x-5.0f)/(Screen.width-10.0f)*GetSongLength());
+            }
         }
         // Play next song on pressing right arrow
         if(Input.GetKeyDown("right")){
